@@ -1,9 +1,9 @@
 # Send mail from terminal/bash with python
 
 # to have a copy of this project.
-```git clone ```
+```git clone https://github.com/makan-dianka/mail```
 
-```cd folder```
+```cd mail```
 
 ## create these file in the folder 
 
