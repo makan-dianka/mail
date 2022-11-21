@@ -31,8 +31,10 @@ def connexion(mail, pwd):
         server = smtplib.SMTP("smtp.gmail.com", 587)
         server.starttls()
         server.login(mail, pwd)
-    except:
-        print("Login failed")
+    except Exception as e:
+        print("\n\033[31mLogin failed.\n\033[33m")
+        print(e, '\n')
+        exit()
     else:
         # print("login success !")
         return server
