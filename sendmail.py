@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import config
 import dotenv
 import os
+import sys
+import design
 
-dotenv.load_dotenv('./.env')
+gmail = config.SenderGmail()
+file = gmail.check_exist_or_empty_file('.env')
 
-sender = os.getenv('sender')
-password = os.getenv('password')
+dotenv.load_dotenv(file)
 
-if 'gmail' not in sender:
+sender = os.getenv('GMAIL')
+password = os.getenv('PASSWORD')
+
+HELP="\nDo you need help ? use: --help\n\n python3 sendmail.py --help\n"
+
+if '@gmail' not in sender:
     print("""
 
         This program required adress mail of google. eg. @gmail.com
@@ -20,65 +25,58 @@ if 'gmail' not in sender:
 
         Author : Makan
         Email  : python3.230492@gmail.com
-        web    : makandianka.org
+        web    : makandianka.com
 
     """)
 
     exit()
 
-def connexion(mail, pwd):
-    try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(mail, pwd)
-    except Exception as e:
-        print("\n\033[31mLogin failed.\n\033[33m")
-        print(e, '\n')
-        exit()
-    else:
-        # print("login success !")
-        return server
 
-def readmails(mails:list)->list:
-    """takes empty list. return list with mails"""
-    with open('mails.txt', 'r') as mails_file:
-        lines = mails_file.readlines()
-        for mail in lines:
-            mails.append(mail.strip())
+if __name__ == '__main__':
 
-    return mails
+    params = sys.argv
 
+    if len(params) == 4:
+        main_file, params_1, params_2, params_3 = params[0], params[1], params[2], params[3]
+        subject, subject_ = params_1.split("=")
+        body, content = params_2.split("=")
+        sendto, mail = params_3.split("=")
+        
+        if subject.lower() == 'subject' and body.lower() == 'body' and sendto.lower() == 'sendto':
+            
+            gmail.send(
+                sender=sender, password=password,
+                recever=mail,
+                subject=subject_,
+                message=content
+            )
 
-def readmessage():
-    with open('message.txt', 'r') as message:
-        return message.read()
-
-def readsubject():
-    with open('subject.txt', 'r') as subject:
-        return subject.read()
-
-
-def send(recever, subject, message):
-    mail=MIMEMultipart()
-    mail['From'] = sender
-    mail['To'] = recever
-    mail['Subject'] = subject
+        else:
+            print(HELP)
     
-    mail.attach(MIMEText(message,'plain'))
-    text = mail.as_string()
+    elif len(params) == 5:
+        main_file, file, params_2, params_3, params_4 = params[0], params[1], params[2], params[3], params[4]
+        subject, subject_file = params_2.split("=")
+        body, content_file = params_3.split("=")
+        sendto, mail_file = params_4.split("=")
+        
+        if file.lower() == "--files":
+            if subject.lower() == 'subject' and body.lower() == 'body' and sendto.lower() == 'sendto':
+                mails = gmail.get_mails(mail_file)
+                for mail in mails:
+                    gmail.send(
+                        sender=sender, password=password,
+                        recever=mail,
+                        subject=gmail.get_file_content(subject_file),
+                        message=gmail.get_file_content(content_file)
+                    )
+            else:
+               print(HELP) 
+        else:
+            print(HELP)
 
-    server = connexion(sender, password)
-    try:
-        server.sendmail(sender,recever,text)
-    except Exception as e:
-        print(e)
+    elif len(params) == 2 and params[1] == '--help':
+        design.help()
+
     else:
-        print(f"[OK] Message envoyé à : {recever}")
-        server.quit() 
-
-mails = readmails([])
-subj = readsubject()
-msg = readmessage()
-
-for mail in mails:
-    send(mail, subj, msg)
+        print(HELP)

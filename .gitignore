@@ -2,3 +2,5 @@ mails.txt
 message.txt
 subject.txt
 .env
+
+__pycache__
